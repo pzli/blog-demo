@@ -19,7 +19,7 @@ var app = express();
 app.set('port', process.env.PORT || 3000);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs'); // 设置模板引擎为ejs
-app.use(flash()); // 添加flash功能
+
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico'))); 设置favicon图标
 app.use(logger('dev')); // 加载日志中间件
@@ -28,10 +28,7 @@ app.use(bodyParser.urlencoded({ extended: false })); // 加载解析urlencoded�
 app.use(cookieParser()); // 加载解析cookie的中间件
 app.use(express.static(path.join(__dirname, 'public'))); // 设置public文件夹为存放静态文件的目录
 
-// 路由控制器
-routes(app);
-
-// 将会话信息存储到mongodb中
+// 将会话信息存储到mongodb中 要在路由前面
 app.use(session({
   secret: settings.cookieSecret, // 防止篡改cookie
   key: settings.db,//cookie name
@@ -42,7 +39,9 @@ app.use(session({
     url: 'mongodb://localhost/blog'
   })
 }));
-
+app.use(flash()); // 添加flash功能 // 这里要在routes前面
+// 路由控制器
+routes(app);
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   var err = new Error('Not Found');
@@ -60,6 +59,7 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
+
 
 // 导出app实例供其他模块调用
 module.exports = app;
