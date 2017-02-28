@@ -70,10 +70,30 @@ module.exports = function(app) {
 	// 登录
 	app.get('/login', function(req, res) {
 		res.render('login', {
-			title: '登录'
+			title: '登录',
+			user: req.session.user,
+			success: req.flash('success').toString(),
+			error: req.flash('error').toString()
 		});
 	});
-	app.post('/login', function(req, res) {});
+	app.post('/login', function(req, res) {
+		var md5 = crypto.createHash('md5'),
+		    name = req.body.name,
+		    password = md5.update(req.body.password).digest('hex');
+		User.get(name, function(err, user){
+			if(!user){
+				req.flash('error', '用户名不存在！');
+				return res.redirect('/login');
+			}
+			if(user.password != password){
+				req.flash('error', '密码错误！');
+				return res.redirect('/login');
+			}
+			req.session.user = user;
+			req.flash('success', '登录成功！');
+			res.redirect('/');
+		})
+	});
 
 
 	// 发布
@@ -86,5 +106,8 @@ module.exports = function(app) {
 
 	// 退出
 	app.get('/logout', function(req, res) { // 点击退出按钮不会有页面
+		req.session.user = null;
+		req.flash('success', '退出成功');
+		res.redirect('/');
 	});
 };
