@@ -14,6 +14,7 @@ module.exports = function(app) {
 	});
 
 	// 注册
+	app.get('/reg', checkNotLogin);
 	app.get('/reg', function(req, res) {
 		res.render('reg', {
 			title: '注册',
@@ -22,7 +23,7 @@ module.exports = function(app) {
 			error: req.flash('error').toString()
 		});
 	});
-
+	app.post('/reg', checkNotLogin);
 	app.post('/reg', function(req, res) {
 		var name = req.body.name,
 			password = req.body.password,
@@ -68,6 +69,7 @@ module.exports = function(app) {
 
 
 	// 登录
+	app.get('/login', checkNotLogin);
 	app.get('/login', function(req, res) {
 		res.render('login', {
 			title: '登录',
@@ -76,16 +78,17 @@ module.exports = function(app) {
 			error: req.flash('error').toString()
 		});
 	});
+	app.post('/login', checkNotLogin);
 	app.post('/login', function(req, res) {
 		var md5 = crypto.createHash('md5'),
-		    name = req.body.name,
-		    password = md5.update(req.body.password).digest('hex');
-		User.get(name, function(err, user){
-			if(!user){
+			name = req.body.name,
+			password = md5.update(req.body.password).digest('hex');
+		User.get(name, function(err, user) {
+			if (!user) {
 				req.flash('error', '用户名不存在！');
 				return res.redirect('/login');
 			}
-			if(user.password != password){
+			if (user.password != password) {
 				req.flash('error', '密码错误！');
 				return res.redirect('/login');
 			}
@@ -97,17 +100,37 @@ module.exports = function(app) {
 
 
 	// 发布
+	app.get('/post', checkLogin);
 	app.get('/post', function(req, res) {
 		res.render('post', {
 			title: '发布'
 		});
 	});
+	app.post('/post', checkLogin);
 	app.post('/post', function(req, res) {});
 
 	// 退出
+	app.get('/logout', checkLogin);
 	app.get('/logout', function(req, res) { // 点击退出按钮不会有页面
 		req.session.user = null;
+		// 通过把 req.session.user 赋值 null 丢掉 session 中用户的信息，实现用户的退出。
 		req.flash('success', '退出成功');
 		res.redirect('/');
 	});
+
+	function checkLogin(req, res, next) { // 检测到未登录则跳到登录界面
+		if (!req.session.user) {
+			req.flash('error', '请登录！');
+			res.redirect('/login');
+		}
+		next();
+	}
+
+	function checkNotLogin(req, res, next) { // 检测到已登录则跳到上一个页面
+		if (req.session.user) {
+			req.flash('error', '您已经登录！');
+			res.redirect('back');
+		}
+		next();
+	}
 };
