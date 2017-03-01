@@ -1,6 +1,7 @@
 var crypto = require('crypto'), // crypto 是 Node.js 的一个核心模块，我们用它生成散列值来加密密码。
 	User = require('../models/user.js'),
-	Post = require('../models/post.js');
+	Post = require('../models/post.js'),
+	check = require('../middlewares/check.js');
 
 
 module.exports = function(app) {
@@ -19,9 +20,8 @@ module.exports = function(app) {
 			});
 		});
 	});
-
 	// 注册
-	app.get('/reg', checkNotLogin);
+	app.get('/reg', check.checkNotLogin);
 	app.get('/reg', function(req, res) {
 		res.render('reg', {
 			title: '注册',
@@ -30,11 +30,19 @@ module.exports = function(app) {
 			error: req.flash('error').toString()
 		});
 	});
-	app.post('/reg', checkNotLogin);
+	app.post('/reg', check.checkNotLogin);
 	app.post('/reg', function(req, res) {
 		var name = req.body.name,
 			password = req.body.password,
 			password_re = req.body['password-repeat'];
+		if(name == ''){
+			req.flash('error', '用户名不能为空！');
+			return res.redirect('/reg'); //返回注册页			
+		}
+		if(password == ''){
+			req.flash('error', '密码不能为空！');
+			return res.redirect('/reg'); //返回注册页			
+		}		
 		//检验用户两次输入的密码是否一致
 		if (password_re != password) {
 			req.flash('error', '两次输入的密码不一致!');
@@ -76,7 +84,7 @@ module.exports = function(app) {
 
 
 	// 登录
-	app.get('/login', checkNotLogin);
+	app.get('/login', check.checkNotLogin);
 	app.get('/login', function(req, res) {
 		res.render('login', {
 			title: '登录',
@@ -85,7 +93,7 @@ module.exports = function(app) {
 			error: req.flash('error').toString()
 		});
 	});
-	app.post('/login', checkNotLogin);
+	app.post('/login', check.checkNotLogin);
 	app.post('/login', function(req, res) {
 		var md5 = crypto.createHash('md5'),
 			name = req.body.name,
@@ -107,7 +115,7 @@ module.exports = function(app) {
 
 
 	// 发布
-	app.get('/post', checkLogin);
+	app.get('/post', check.checkLogin);
 	app.get('/post', function(req, res) {
 		res.render('post', {
 			title: '发布',
@@ -116,7 +124,7 @@ module.exports = function(app) {
 			error: req.flash('error').toString()
 		});
 	});
-	app.post('/post', checkLogin);
+	app.post('/post', check.checkLogin);
 	app.post('/post', function(req, res) {
 		var currentUser = req.session.user,
 			post = new Post(currentUser.name, req.body.title, req.body.post);
@@ -131,7 +139,7 @@ module.exports = function(app) {
 	});
 
 	// 退出
-	app.get('/logout', checkLogin);
+	app.get('/logout', check.checkLogin);
 	app.get('/logout', function(req, res) { // 点击退出按钮不会有页面
 		req.session.user = null;
 		// 通过把 req.session.user 赋值 null 丢掉 session 中用户的信息，实现用户的退出。
@@ -139,19 +147,4 @@ module.exports = function(app) {
 		res.redirect('/');
 	});
 
-	function checkLogin(req, res, next) { // 检测到未登录则跳到登录界面
-		if (!req.session.user) {
-			req.flash('error', '请登录！');
-			res.redirect('/login');
-		}
-		next();
-	}
-
-	function checkNotLogin(req, res, next) { // 检测到已登录则跳到上一个页面
-		if (req.session.user) {
-			req.flash('error', '您已经登录！');
-			res.redirect('back');
-		}
-		next();
-	}
 };
