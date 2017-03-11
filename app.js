@@ -4,7 +4,6 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-// var mongoose = require('mongoose');
 var routes = require('./routes/index');
 // var users = require('./routes/users');
 var settings = require('./settings');
@@ -13,13 +12,6 @@ var flash = require('connect-flash');
 var session = require('express-session');
 var MongoStore = require('connect-mongo')(session);
 
-// mongoose.connect('mongodb://localhost/blog', function (err, res) {
-//   if (err) {
-//     console.log('DB CONNECTION FAIL')
-//   } else {
-//     console.log('DB CONNECTION SUCCESS')
-//   }
-// })
 
 var app = express();
 
@@ -52,7 +44,7 @@ app.use(flash()); // 添加flash功能 // 这里要在routes前面
 // 设置模板全局常量
 app.locals.blog = {
   title: 'blog',
-  description: 'blog demo'
+  description: '简单的博客demo'
 };
 
 // 路由控制器
