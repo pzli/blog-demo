@@ -4,13 +4,13 @@
 	
 ## 启动数据库
 
-下载好mongoDB后，闯进blog文件夹当做项目数据库，在bin目录下使用命令：
+下载好mongoDB后，创建blog文件夹作为项目数据库，在bin目录下使用命令：
 
 	./mongod --dbpath ../blog/
 	
 	
 ## 启动
-我使用了nodemon来实现每次保存重新载入刷新页面，在项目根目录下使用命令：
+我使用了nodemon来实现每次保存都重新载入页面，在项目根目录下使用命令：
 
 	nodemon ./bin/www
 
